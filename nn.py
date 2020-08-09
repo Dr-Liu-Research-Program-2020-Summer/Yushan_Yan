@@ -3,6 +3,7 @@ import torch
 import numpy as np
 from test import *
 from sklearn import preprocessing
+from count import *
 
 def load_one_data(path = 0):
     folderpath = r"C:\Users\yanzheng\Downloads\100 Rooms Data"
@@ -23,10 +24,16 @@ def load_input():
     
     labels = df['result'].to_numpy()#dependent variable
     labels = labels.T #transpose
-    print(labels)
+    #print(type(labels))
+    
     df.drop(columns = ['result','corr'], inplace = True)
-    input_set = df.to_numpy()
-    input_set = normal_data(input_set)
+    input_set = normal_data(df.to_numpy())
+    #t = pd.read_csv('c:/Users/yanzheng/Desktop/samplesinput.csv',dtype=float)
+    #labels = np.array(t['result'].tolist())
+    #t = t[[var_1,var_2]]
+    #input_set = normal_data(t.to_numpy())
+    
+    print(count(labels.tolist()))
     return labels,input_set
 
 def normal_data(data):
@@ -44,8 +51,8 @@ def sigmoid_derivative(x):
     return sigmoid(x)*(1-sigmoid(x))
 
 def epoch(weights,bias,inputs,labels):
-    #labels,inputs = load_input()
-    for epoch in range(10):
+    
+    for epoch in range(50): #times you train
         input_cal = inputs
         #print(np.shape(inputs))
         #print(np.shape(input_cal),np.shape(weights))
@@ -98,7 +105,7 @@ if __name__ == '__main__':
     
     #print(load_input()[0])
     #print(load_input()[1])
-    nn(data=data,weights=weights,bias=bias,table=table)
+    nn(data=data,weights=weights,bias=bias,table=data)
 #single_pt = np.array([1,0,0])
 #result = sigmoid(np.dot(single_pt, weights) + bias)
 #print(result)
