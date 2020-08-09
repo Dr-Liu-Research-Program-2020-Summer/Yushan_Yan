@@ -130,8 +130,8 @@ def remark(var_1 = 'a',var_2 = 'dat',start = 0, end = 0,df_remarks = '',method =
         df_remarks['result'] = dect
     if 'corr' not in df_remarks.columns:
         df_remarks['corr'] = np.nan
-    a = np.array(df_remarks[var_1][start:end+1].to_list())
-    b = np.array(df_remarks[var_2][start:end+1].to_list())
+    a = np.array(df_remarks[var_1][start:end+1].tolist())
+    b = np.array(df_remarks[var_2][start:end+1].tolist())
     if method == 'pearson':
         lag,corr,clst = tlcc_pearson(a,b,lag_limit=20)
         if (var_1 == 'AirFlow' and var_2 == 'Airflow Setpoint') :
@@ -156,14 +156,17 @@ def remark(var_1 = 'a',var_2 = 'dat',start = 0, end = 0,df_remarks = '',method =
         elif var_1 == 'Discharge Air Temperature' and var_2 == 'Hot Water Valve Command ':
             if corr > -0.4:
                 dect = 1
-
+    for i in df_remarks.index.tolist():
+        if df_remarks['corr'][i] == 2:
+            df_remarks= df_remarks.drop(i)
     df_remarks['corr'][start:end+1] = corr
     df_remarks['result'][start:end+1] = dect
+    
+    #df_remarks = df_remarks[df_remarks.corr != 2]
     return df_remarks
-
     #if method == 'spearman':
     #    df.Correlation[df.Correlation== 2] = np.nan
-   
+    
    # result = df['Detection']
    # result.to_excel('Result'+var_1+','+var_2+'.xls')
     #faults.to_excel('Correlation' +var_1 + " "+var_2+ str(start)+':'+str(end)+'.xls')

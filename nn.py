@@ -2,29 +2,38 @@
 import torch
 import numpy as np
 from test import *
+from sklearn import preprocessing
 
 def load_one_data(path = 0):
     folderpath = r"C:\Users\yanzheng\Downloads\100 Rooms Data"
     filepaths  = [os.path.join(folderpath, name) for name in os.listdir(folderpath)][20:101]
     path = filepaths[path]
     room = pd.read_csv(path)
-    df_remarks = room[[var_1,var_2]]
-    df_remarks =df_remarks.iloc[0:10]
-    return df_remarks
+    df = room[[var_1,var_2]]
+    df_remarks = normal_data(df.to_numpy())
+    #print(df_remarks)
+    #df_remarks =df_remarks.iloc[0:10]
+    return df_remarks,df
 
 #def load_all_data(path )
 
 def load_input():
     df = test()
-    df.drop(columns=['corr'], inplace=True)
+    df.dropna(inplace=True)
     
     labels = df['result'].to_numpy()#dependent variable
     labels = labels.T #transpose
-
-    df.drop(columns = ['result'], inplace = True)
-    input_set = df.to_numpy() 
+    print(labels)
+    df.drop(columns = ['result','corr'], inplace = True)
+    input_set = df.to_numpy()
+    input_set = normal_data(input_set)
     return labels,input_set
 
+def normal_data(data):
+    min_max_scaler = preprocessing.MinMaxScaler()
+    X_train_minmax = min_max_scaler.fit_transform(data)
+    return X_train_minmax
+    
 
 
 #
@@ -34,18 +43,21 @@ def sigmoid(x):
 def sigmoid_derivative(x):
     return sigmoid(x)*(1-sigmoid(x))
 
-def epoch(weights,bias):
-    for epoch in range(25000):
-        labels,inputs = load_input()
-        XW = np.dot(inputs, weights)+ bias
+def epoch(weights,bias,inputs,labels):
+    #labels,inputs = load_input()
+    for epoch in range(10):
+        input_cal = inputs
+        #print(np.shape(inputs))
+        #print(np.shape(input_cal),np.shape(weights))
+        XW = np.dot(input_cal, weights)+ bias
         z = sigmoid(XW)
         error = z - labels
     #print(error.sum())
         dcost = error
         dpred = sigmoid_derivative(z)
         z_del = dcost * dpred
-        inputs = inputs.T
-        weights = weights - lr*np.dot(inputs, z_del)
+        input_cal = input_cal.T
+        weights = weights - lr*np.dot(input_cal, z_del)
     
     for num in z_del:
         bias = bias - lr*num
@@ -57,14 +69,24 @@ def epoch(weights,bias):
 #slope = input x dcost x dpred
 
 
-def nn(data,weights,bias):
-    bias, weights = epoch(weights = weights,bias = bias)
-    for i in data.to_numpy():
-        single_pt = np.array(i)
-        result = sigmoid(np.dot(single_pt, weights) + bias)
-        data['test result'][i] = result
-    print(data)
-    return data
+def nn(data,weights,bias,table):
+    labels,inputs = load_input()
+    #data['test result'] = 0
+    list_data = []
+    #dt = data.drop('test result',axis = 1)
+    bias, weights = epoch(weights = weights,bias = bias,inputs = inputs,labels = labels)
+    for i in data:
+        #print(single_pt)
+        result = sigmoid(np.dot(i, weights) + bias)
+        #print(result)
+        result = result[0]
+
+        list_data.append(result)
+        #print(list_data)
+    table['test result'] = list_data
+    #print(data)
+    table.to_excel('data.xls')
+    return table
 
 if __name__ == '__main__':
     #Define Hyperparameters
@@ -72,9 +94,11 @@ if __name__ == '__main__':
     weights = np.random.rand(2,1)
     bias = np.random.rand(1)
     lr = 0.05
-    data = load_one_data() 
-    nn(data,weights,bias)
+    data,table= load_one_data() 
+    
+    #print(load_input()[0])
+    #print(load_input()[1])
+    nn(data=data,weights=weights,bias=bias,table=table)
 #single_pt = np.array([1,0,0])
 #result = sigmoid(np.dot(single_pt, weights) + bias)
 #print(result)
-
